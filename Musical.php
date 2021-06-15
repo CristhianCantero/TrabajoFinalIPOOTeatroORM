@@ -1,6 +1,6 @@
 <?php
 
-class Musical extends Actividad{
+class Musical{
     private $idMusical;
     private $idActividad;
     private $director;
