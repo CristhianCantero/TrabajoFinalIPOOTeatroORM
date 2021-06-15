@@ -1,6 +1,6 @@
 <?php
 
-class ObraTeatro extends Actividad{
+class ObraTeatro{
     private $idObraTeatro;
     private $idActividad;
 	private $mensajeoperacion;
