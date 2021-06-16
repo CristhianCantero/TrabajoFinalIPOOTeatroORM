@@ -15,15 +15,8 @@ class Actividad{
     {
         $this->teatro = $teatro;
         $this->nombre = $nombre;
-        $this->horaInicio = array(
-            "hora"=> $horaInicio['hora'],
-            "minutos"=> $horaInicio['minutos']
-        );
-        $this->fecha = array(
-            "anio"=> $fecha['anio'],
-            "mes"=> $fecha['mes'],
-            "dia"=> $fecha['dia']
-        );
+        $this->horaInicio = $horaInicio;
+        $this->fecha = $fecha;
         $this->duracionActividad = $duracionActividad;
         $this->precio = $precio;
     }
@@ -183,20 +176,22 @@ class Actividad{
 			if($base->Ejecutar($consultaActividad)){				
 				$arregloActividad= array();
 				while($row2=$base->Registro()){
-                    $idTeatro = ($row2['idTeatro']);
+                    // $idTeatro = ($row2['idTeatro']);
                     $actividad = ($row2['idActividad']);
-				    $nombre = ($row2['nombre']);
-                    $duracionActiv = ($row2['duracionActividad']);
-                    $precio = ($row2['precio']);
-                    $horaInicioArray = $this->transformarHoraInicioArray($row2['horaInicio']);
-                    $fechaArray = $this->transformarFechaArray($row2['fecha']);
+				    // $nombre = ($row2['nombre']);
+                    // $duracionActiv = ($row2['duracionActividad']);
+                    // $precio = ($row2['precio']);
+                    // $horaInicioArray = $this->transformarHoraInicioArray($row2['horaInicio']);
+                    // $fechaArray = $this->transformarFechaArray($row2['fecha']);
 
-                    $teatro = new EdificioTeatro("", "", "");
+                    // $teatro = new EdificioTeatro("", "", "");
 
-                    $teatro->Buscar($idTeatro);
-                    
-					$objActividad = new Actividad($teatro, $nombre, $horaInicioArray, $fechaArray, $duracionActiv, $precio);
-					$objActividad->setIdActividad($actividad);
+                    // $teatro->Buscar($idTeatro);
+                    $hora = array('hora' => '', 'minutos' => '');
+                    $fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+                    $objActividad = new Actividad('', '', $hora, $fecha, '', '');  
+
+					$objActividad->Buscar($actividad);
 					array_push($arregloActividad,$objActividad);
 				}
 		 	}else{
@@ -230,14 +225,17 @@ class Actividad{
 		return $resp;
 	}
 	// MODIFICAR UNA ACTIVIDAD DEPENDIENDO DE LA IDACTIV
-	public function modificar($idActiv){
+	public function modificar(){
 	    $resp =false; 
 	    $base=new BaseDatos();
+        $idActiv = $this->getIdActividad();
         $horaString = $this->transformarHoraString();
         $fechaString = $this->transformarFechaString();
         $objTeatro = $this->getTeatro();
+        echo "Aca esta el objeto dentro de modificar: " . $objTeatro;
 		$consultaModifica="UPDATE actividad SET idTeatro=".$objTeatro->getIdEdificioTeatro().",nombre='".$this->getNombre()."',horaInicio='".$horaString."',fecha='".$fechaString."',duracionActividad=". $this->getDuracionActividad().",precio=". $this->getPrecio()." WHERE idActividad=".$idActiv;
-		if($base->Iniciar()){
+		// echo $consultaModifica;
+        if($base->Iniciar()){
 			if($base->Ejecutar($consultaModifica)){
 			    $resp=  true;
 			}else{
@@ -249,16 +247,16 @@ class Actividad{
 		return $resp;
 	}
 	// ELIMINAR LA ACTIVIDAD MANDADA POR IDACTIVIDAD
-	public function eliminar($idActividad){
+	public function eliminar(){
 		$base=new BaseDatos();
 		$resp=false;
 		if($base->Iniciar()){
-				$consultaBorra="DELETE FROM actividad WHERE idActividad=".$idActividad;
-				if($base->Ejecutar($consultaBorra)){
-				    $resp=  true;
-				}else{
-					$this->setmensajeoperacion($base->getError());
-				}
+            $consultaBorra="DELETE FROM actividad WHERE idActividad=".$this->getIdActividad();
+            if($base->Ejecutar($consultaBorra)){
+                $resp=  true;
+            }else{
+                $this->setmensajeoperacion($base->getError());
+            }
 		}else{
 			$this->setmensajeoperacion($base->getError());
 		}
@@ -267,14 +265,14 @@ class Actividad{
 
     public function __toString()
     {  
-        $horario = $this->getHoraInicio();
-        $fecha = $this->getFecha();
+        $horario = $this->transformarHoraString();
+        $fecha = $this->transformarFechaString();
         return  $this->getTeatro() . "\n" .
                 "ID Actividad: " . $this->getIdActividad() . "\n" . 
                 "Nombre: " . $this->getNombre() . "\n" .
                 "Precio: " . $this->getPrecio() . "\n" .
-                "Fecha: " . $fecha['dia'] . "-" . $fecha["mes"] . "-" . $fecha["anio"] . "\n" .
-                "Hora de inicio: " . $horario['hora'] . ":" . $horario['minutos'] . "\n" .
+                "Fecha: " . $fecha . "\n" .
+                "Hora de inicio: " . $horario . "\n" .
                 "Duracion: " . $this->getDuracionActividad() . " minutos" . "\n"
                 ;
     }

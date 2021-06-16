@@ -140,29 +140,29 @@ function crearActividad($objActividadBase, $objTeatro)
         }
     } while($existeHorarioActividad);
 
-    $hora = array('hora' => $horaActividad, 'minutos' => $minutosActividad);
-
+    // NO CREO LA FUNCION PRIMERO, A PARTIR DE LAS FUNCIONES HIJAS CREO LA FUNCION PADRE 
     // CREO EL OBJETO ACTIVIDAD Y LO INSERTO EN LA BASE DE DATOS
-    $objActividad = new Actividad($objTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad);
-
-    echo "INSERTANDO ACTIVIDAD EN LA BASE DE DATOS..." . "\n";
-    $respuestaInsercion = $objActividad->insertar();
-
-    if ($respuestaInsercion) {
-        echo "OPERACION DE INSERCION EXITOSA" . "\n";
-
-        echo "EL ID DE LA NUEVA ACTIVIDAD ES: " . $objActividad->getIdActividad() . "\n";
-
-        echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------" . "\n";
-        $colActividades = $objActividad->listar("");
-        foreach ($colActividades as $unaActividad) {
-            echo $unaActividad;
-            echo "-------------------------------------------------------" . "\n";
-        }
-    } else {
-        echo $objActividad->getmensajeoperacion() . "\n";
-    }
-    // PIDO EL TIPO DE ACTIVIDAD QUE SE ACABA DE CREAR PARA PODER INSERTARLA RESPECTIVAMENTE EN SU TABLA
+    // $objActividad = new Actividad($objTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad);
+    
+    // echo "INSERTANDO ACTIVIDAD EN LA BASE DE DATOS..." . "\n";
+    // $respuestaInsercion = $objActividad->insertar();
+    
+    // if ($respuestaInsercion) {
+        //     echo "OPERACION DE INSERCION EXITOSA" . "\n";
+        
+        //     echo "EL ID DE LA NUEVA ACTIVIDAD ES: " . $objActividad->getIdActividad() . "\n";
+        
+        //     echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------" . "\n";
+        //     $colActividades = $objActividad->listar("");
+        //     foreach ($colActividades as $unaActividad) {
+            //         echo $unaActividad;
+            //         echo "-------------------------------------------------------" . "\n";
+            //     }
+            // } else {
+                //     echo $objActividad->getmensajeoperacion() . "\n";
+                // }
+                // PIDO EL TIPO DE ACTIVIDAD QUE SE ACABA DE CREAR PARA PODER INSERTARLA RESPECTIVAMENTE EN SU TABLA
+    $hora = array('hora' => $horaActividad, 'minutos' => $minutosActividad);
     do {
         echo "---------------------------------------" . "\n";
         echo "ELIJA TIPO DE ACTIVIDAD QUE ACABA DE CARGAR: " . "\n";
@@ -176,13 +176,13 @@ function crearActividad($objActividadBase, $objTeatro)
 
     switch ($tipoActividad) {
         case '1':
-            $objObraTeatro = new ObraTeatro($objActividad);
+            $objObraTeatro = new ObraTeatro($objTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad);
             echo "INSERTANDO OBRA DE TEATRO EN LA BASE DE DATOS..." . "\n";
             $respuestaInsercion = $objObraTeatro->insertar();
             if ($respuestaInsercion) {
                 echo "OPERACION DE INSERCION EXITOSA" . "\n";
 
-                echo "EL ID DE LA OBRA DE TEATRO ES: " . $objObraTeatro->getIdObraTeatro() . "\n";
+                echo "EL ID DE LA OBRA DE TEATRO ES: " . $objObraTeatro->getIdActividad() . "\n";
 
                 echo "-------------COLECCION OBRAS DE TEATRO ACTIVAS-------------" . "\n";
                 $colObrasTeatro = $objObraTeatro->listar("");
@@ -201,14 +201,14 @@ function crearActividad($objActividadBase, $objTeatro)
             echo "Ingrese el Pais de Origen: ";
             $paisDeOrigen = trim(fgets(STDIN));
 
-            $objCine = new Cine($objActividad, $generoCine, $paisDeOrigen);
+            $objCine = new Cine($objTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad, $generoCine, $paisDeOrigen);
 
             echo "INSERTANDO PELICULA EN LA BASE DE DATOS..." . "\n";
             $respuestaInsercion = $objCine->insertar();
             if ($respuestaInsercion) {
                 echo "OPERACION DE INSERCION EXITOSA" . "\n";
 
-                echo "EL ID DE LA PELICULA ES: " . $objCine->getIdCine() . "\n";
+                echo "EL ID DE LA PELICULA ES: " . $objCine->getIdActividad() ."\n";
 
                 echo "-------------COLECCION PELICULAS ACTIVAS-------------" . "\n";
                 $colPeliculas = $objCine->listar("");
@@ -226,14 +226,14 @@ function crearActividad($objActividadBase, $objTeatro)
             echo "Ingrese la Cantidad de Personas en Escena: ";
             $cantPersonasEnEscena = trim(fgets(STDIN));
 
-            $objMusical = new Musical($objActividad, $director, $cantPersonasEnEscena);
+            $objMusical = new Musical($objTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad, $director, $cantPersonasEnEscena);
 
             echo "INSERTANDO MUSICAL EN LA BASE DE DATOS..." . "\n";
             $respuestaInsercion = $objMusical->insertar();
             if ($respuestaInsercion) {
                 echo "OPERACION DE INSERCION EXITOSA" . "\n";
 
-                echo "EL ID DEL MUSICAL ES: " . $objMusical->getIdMusical() . "\n";
+                echo "EL ID DEL MUSICAL ES: " . $objMusical->getIdActividad() . "\n";
 
                 echo "-------------COLECCION MUSICALES ACTIVOS-------------" . "\n";
                 $colMusicales = $objMusical->listar("");
@@ -270,7 +270,8 @@ function datosModificarActividad($objActividad)
     } else {
         $nuevoPrecioActividad = $objActividad->getPrecio();
     }
-    $arrayInfoActividad = array('teatro'=> $objActividad->getIdEdificioTeatro(), 'nombre' => $nuevoNombreActividad, 'horaInicio' => $objActividad->getHoraInicio(), 'fecha' => $objActividad->getFecha(), 'duracion' => $objActividad->getDuracionActividad(), 'precio' => $nuevoPrecioActividad);
+    $objetoTeatro = $objActividad->getTeatro();
+    $arrayInfoActividad = array('teatro'=> $objetoTeatro, 'nombre' => $nuevoNombreActividad, 'horaInicio' => $objActividad->getHoraInicio(), 'fecha' => $objActividad->getFecha(), 'duracion' => $objActividad->getDuracionActividad(), 'precio' => $nuevoPrecioActividad);
     return $arrayInfoActividad;
 }
 
@@ -286,9 +287,9 @@ $hora = array('hora' => '', 'minutos' => '');
 $fecha = array('anio' => '', 'mes' => '', 'dia' => '');
 $objActividadBase = new Actividad('', '', $hora, $fecha, '', ''); //idTeatro, nombre, hora, fecha, duracion, precio
 
-$objCineBase = new Cine("", "", "");
-$objMusicalBase = new Musical("", "", "");
-$objObraTeatroBase = new ObraTeatro("");
+$objCineBase = new Cine("", "", $hora, $fecha, "", "", "", "");
+$objMusicalBase = new Musical("", "", $hora, $fecha, "", "", "", "");
+$objObraTeatroBase = new ObraTeatro("", "", $hora, $fecha, "", "", "", "");
 
 do {
     echo "---------------------MENU---------------------" . "\n";
@@ -333,7 +334,7 @@ do {
 
                 $objTeatroModificar->cambiarDatos($arrayInfo);
 
-                $resultadoModificar = $objTeatroModificar->modificar($objTeatroModificar->getIdEdificioTeatro());
+                $resultadoModificar = $objTeatroModificar->modificar();
 
                 if ($resultadoModificar) {
                     echo "OPERACION DE MODIFICACION EXITOSA" . "\n";
@@ -377,17 +378,30 @@ do {
             }
             echo "Ingrese el ID del teatro que desea eliminar: ";
             $idTeatroEliminar = trim(fgets(STDIN));
-            $respuestaEliminacion = $objTeatroBase->eliminar($idTeatroEliminar);
-            if ($respuestaEliminacion) {
-                echo "OPERACION DE ELIMINACION EXITOSA" . "\n";
-                $colTeatros = $objTeatroBase->listar("");
 
-                foreach ($colTeatros as $unTeatro) {
-                    echo $unTeatro;
-                    echo "-------------------------------------------------------" . "\n";
+            $objTeatroEliminar = new EdificioTeatro('', '', '');
+
+            $respuestaBusqueda = $objTeatroEliminar->Buscar($idTeatroEliminar);
+            
+            if ($respuestaBusqueda) {
+                echo "--------TEATRO ENCONTRADO--------" . "\n";
+                echo $objTeatroEliminar;
+                echo "---------------------------------" . "\n";
+                
+                $respuestaEliminacion = $objTeatroEliminar->eliminar();
+                if($respuestaEliminacion) {
+                    echo "OPERACION DE ELIMINACION EXITOSA" . "\n";
+                    $colTeatros = $objActividadBase->listar("");
+    
+                    foreach ($colTeatros as $unTeatro) {
+                        echo $unTeatro;
+                        echo "-------------------------------------------------------" . "\n";
+                    }
+                }else{
+                    echo "ERROR EN LA ELIMINACION: " . $objActividadBase->getmensajeoperacion() . "\n";
                 }
             } else {
-                echo "ERROR EN LA ELIMINACION: " . $objTeatroBase->getmensajeoperacion() . "\n";
+                echo "ERROR EN LA BUSQUEDA: " . $objTeatroBusqueda->getmensajeoperacion() . "\n";
             }
         break;
         case '5':
@@ -435,7 +449,7 @@ do {
 
                 $objActividadModificar->actualizarAtributos($arrayInfo);
 
-                $resultadoModificar = $objActividadModificar->modificar($objActividadModificar->getIdActividad());
+                $resultadoModificar = $objActividadModificar->modificar();
 
                 if ($resultadoModificar) {
                     echo "OPERACION DE MODIFICACION EXITOSA" . "\n";
@@ -452,36 +466,67 @@ do {
             }
         break;
         case '7':
-            $colActividades = $objActividadBase->listar("");
-            echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------" . "\n";
-            foreach ($colActividades as $unaActividad) {
+            echo "--------COLECCION TEATROS--------" . "\n";
+            $coleccionTeatros = $objTeatroBase->listar("");
+            foreach ($coleccionTeatros as $unTeatro) {
+                echo $unTeatro;
+                echo "-------------------------------------------------------" . "\n";
+            }
+            echo "Ingrese el ID del teatro del que desea ver las funciones: ";
+            $respuestaIDTeatro = trim(fgets(STDIN));
+
+            $objTeatroBusqueda = new EdificioTeatro('', '', '');
+            $respuestaBusqueda = $objTeatroBusqueda->Buscar($respuestaIDTeatro);
+            if ($respuestaBusqueda) {
+                echo "--------TEATRO ENCONTRADO--------" . "\n";
+                echo $objTeatroBusqueda;
+                echo "---------------------------------" . "\n";
+            } else {
+                echo "ERROR EN LA BUSQUEDA: " . $objTeatroBusqueda->getmensajeoperacion() . "\n";
+            }
+            $coleccionActividadades = $objTeatroBusqueda->getColeccionFunciones();
+            echo "------COLECCION ACTIVIDADES ACTIVAS PARA EL TEATRO " . strtoupper($objTeatroBusqueda->getNombre()) . "------" . "\n";
+            foreach ($coleccionActividadades as $unaActividad) {
                 echo $unaActividad;
                 echo "-------------------------------------------------------" . "\n";
             }
         break;
         case '8':
             $colPelicula = $objCineBase->listar("");
-            echo "-------------COLECCION PELICULAS ACTIVAS-------------" . "\n";
-            foreach ($colPelicula as $unaPelicula) {
-                echo $unaPelicula;
-                echo "-------------------------------------------------------" . "\n";
+            if(count($colPelicula)>0){
+                echo "-------------COLECCION PELICULAS ACTIVAS-------------" . "\n";
+                foreach ($colPelicula as $unaPelicula) {
+                    echo $unaPelicula;
+                    echo "-------------------------------------------------------" . "\n";
+                }
+            }else{
+                echo "NO HAY PELICULAS ACTIVAS \n";
             }
         break;
         case '9':
             $colMusicales = $objMusicalBase->listar("");
-            echo "-------------COLECCION MUSICALES ACTIVAS-------------" . "\n";
-            foreach ($colMusicales as $unMusical) {
-                echo $unMusical;
-                echo "-------------------------------------------------------" . "\n";
+            if(count($colMusicales)>0){
+                echo "-------------COLECCION MUSICALES ACTIVAS-------------" . "\n";
+                foreach ($colMusicales as $unMusical) {
+                    echo $unMusical;
+                    echo "-------------------------------------------------------" . "\n";
+                }
+            }else{
+                echo "NO HAY MUSICALES ACTIVOS \n";
             }
         break;
         case '10':
             $colObrasTeatro = $objObraTeatroBase->listar("");
-            echo "-------------COLECCION OBRAS DE TEATRO ACTIVAS-------------" . "\n";
-            foreach ($colObrasTeatro as $unaObraTeatro) {
-                echo $unaObraTeatro;
-                echo "-------------------------------------------------------" . "\n";
+            if(count($colObrasTeatro)>0){
+                echo "-------------COLECCION OBRAS DE TEATRO ACTIVAS-------------" . "\n";
+                foreach ($colObrasTeatro as $unaObraTeatro) {
+                    echo $unaObraTeatro;
+                    echo "-------------------------------------------------------" . "\n";
+                }
+            }else{
+                echo "NO HAY OBRAS DE TEATRO ACTIVAS \n";
             }
+            
         break;
         case '11':
             echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------" . "\n";
@@ -492,17 +537,31 @@ do {
             }
             echo "Ingrese el ID de la actividad que desea eliminar: ";
             $idActividadEliminar = trim(fgets(STDIN));
-            $respuestaEliminacion = $objActividadBase->eliminar($idActividadEliminar);
-            if ($respuestaEliminacion) {
-                echo "OPERACION DE ELIMINACION EXITOSA" . "\n";
-                $colActividades = $objActividadBase->listar("");
+            $hora = array('hora' => '', 'minutos' => '');
+            $fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+            $objActividadEliminar = new Actividad('', '', $hora, $fecha, '', ''); //idTeatro, nombre, hora, fecha, duracion, precio
 
-                foreach ($colActividades as $unaActividad) {
-                    echo $unaActividad;
-                    echo "-------------------------------------------------------" . "\n";
+            $respuestaBusqueda = $objActividadEliminar->Buscar($idActividadEliminar);
+            
+            if ($respuestaBusqueda) {
+                echo "--------ACTIVIDAD ENCONTRADA--------" . "\n";
+                echo $objActividadEliminar;
+                echo "---------------------------------" . "\n";
+                
+                $respuestaEliminacion = $objActividadEliminar->eliminar();
+                if($respuestaEliminacion) {
+                    echo "OPERACION DE ELIMINACION EXITOSA" . "\n";
+                    $colActividades = $objActividadBase->listar("");
+    
+                    foreach ($colActividades as $unaActividad) {
+                        echo $unaActividad;
+                        echo "-------------------------------------------------------" . "\n";
+                    }
+                }else{
+                    echo "ERROR EN LA ELIMINACION: " . $objActividadBase->getmensajeoperacion() . "\n";
                 }
             } else {
-                echo "ERROR EN LA ELIMINACION: " . $objActividadBase->getmensajeoperacion() . "\n";
+                echo "ERROR EN LA BUSQUEDA: " . $objTeatroBusqueda->getmensajeoperacion() . "\n";
             }
         break;
         case '12':

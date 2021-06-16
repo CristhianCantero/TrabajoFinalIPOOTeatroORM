@@ -5,12 +5,14 @@ class EdificioTeatro{
     private $direccion;
     private $ciudad;
     private $mensajeoperacion;
+    private $coleccionFunciones;
     
     public function __construct($nombre, $direccion, $ciudad)
     {
         $this->nombre = $nombre;
         $this->direccion = $direccion;
         $this->ciudad = $ciudad;
+        $this->coleccionFunciones = [];
     }
     public function getNombre(){
         return $this->nombre;
@@ -29,6 +31,25 @@ class EdificioTeatro{
     public function getmensajeoperacion(){
 		return $this->mensajeoperacion ;
 	}
+    public function getColeccionFunciones()
+    {
+        $hora = array('hora' => "", 'minutos' => "");
+        $fecha = array('anio' => "", 'mes' => "", 'dia' => "");
+        $condicion = " actividad.idTeatro=". $this->getIdEdificioTeatro();
+        $objCineBase = new Cine("", "", $hora, $fecha, "", "", "", "");
+        $objMusicalBase = new Musical("", "", $hora, $fecha, "", "", "", "");
+        $objObraTeatroBase = new ObraTeatro("", "", $hora, $fecha, "", "", "", "");
+        $colPelicula = $objCineBase->listar($condicion);
+        $colMusicales = $objMusicalBase->listar($condicion);
+        $colObrasTeatro = $objObraTeatroBase->listar($condicion);
+        $colecFunciones = array_merge($colPelicula, $colMusicales, $colObrasTeatro);
+        return $colecFunciones;
+    }
+
+    public function setColeccionFunciones($coleccionFunciones)
+    {
+        $this->coleccionFunciones = $coleccionFunciones;
+    }
     
     public function setCiudad($ciudad)
     {
@@ -158,12 +179,9 @@ class EdificioTeatro{
 				$arregloTeatros= array();
 				while($row2=$base->Registro()){
                     $idTeatro = ($row2['idTeatro']);
-                    $nombre = ($row2['nombre']);
-                    $direccion = ($row2['direccion']);
-                    $ciudad = ($row2['ciudad']);
 				
-					$objEdificioTeatro = new EdificioTeatro($nombre, $direccion, $ciudad);
-					$objEdificioTeatro->setIdEdificioTeatro($idTeatro);
+					$objEdificioTeatro = new EdificioTeatro('', '', '');
+					$objEdificioTeatro->Buscar($idTeatro);
 
 					array_push($arregloTeatros,$objEdificioTeatro);
 				}
@@ -195,10 +213,10 @@ class EdificioTeatro{
 		return $resp;
 	}
 	
-	public function modificar($idTeatro){
+	public function modificar(){
 	    $resp =false; 
 	    $base=new BaseDatos();
-		$consultaModifica= "UPDATE teatro SET nombre='".$this->getNombre()."',direccion='".$this->getDireccion()."',ciudad='".$this->getCiudad()."' WHERE idTeatro=".$idTeatro;
+		$consultaModifica= "UPDATE teatro SET nombre='".$this->getNombre()."',direccion='".$this->getDireccion()."',ciudad='".$this->getCiudad()."' WHERE idTeatro=".$this->getIdEdificioTeatro();
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaModifica)){
 			    $resp= true;
@@ -211,11 +229,11 @@ class EdificioTeatro{
 		return $resp;
 	}
 	
-	public function eliminar($idTeatro){
+	public function eliminar(){
 		$base=new BaseDatos();
 		$resp=false;
 		if($base->Iniciar()){
-				$consultaBorra="DELETE FROM teatro WHERE idTeatro=".$idTeatro;
+				$consultaBorra="DELETE FROM teatro WHERE idTeatro=".$this->getIdEdificioTeatro();
 				if($base->Ejecutar($consultaBorra)){
 				    $resp=true;
 				}else{
@@ -236,6 +254,8 @@ class EdificioTeatro{
             ;
 
     }
+
+    
 
     
 }

@@ -1,34 +1,16 @@
 <?php
-
-class Cine{
-    private $idCine;
-    private $objActividad;
+include_once "Actividad.php";
+class Cine extends Actividad{
     private $genero;
     private $paisOrigen;
 	private $mensajeoperacion;
 
-    public function __construct($objActividad, $genero, $paisOrigen){
-        $this->objActividad = $objActividad;
+    public function __construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio, $genero, $paisOrigen){
+		parent::__construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio);
         $this->genero = $genero;
         $this->paisOrigen = $paisOrigen;
     }
-    
-    public function getIdCine()
-    {
-        return $this->idCine;
-    }
-    public function setIdCine($idCine)
-    {
-        $this->idCine = $idCine;
-    }
-    public function getObjActividad()
-    {
-        return $this->objActividad;
-    }
-    public function setObjActividad($objActividad)
-    {
-        $this->objActividad = $objActividad;
-    }
+	
     public function getGenero()
     {
         return $this->genero;
@@ -54,24 +36,18 @@ class Cine{
 
     // CONSULTAS PARA EL ORM
 		
-    public function Buscar($idCine){
+    public function Buscar($idActividad){
 		$base=new BaseDatos();
-		$consultaActividad="Select * from cine where idCine=".$idCine;
+		$consultaActividad="Select * from cine where idActividad=".$idActividad;
 		$resp= false;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
-				    $this->setIdCine($row['idCine']);
-				    $idActividad = ($row['idActividad']);
+				    $idActiv = ($row['idActividad']);
                     $this->setGenero($row['genero']);
                     $this->setPaisOrigen($row['paisOrigen']);
 
-					$hora = array('hora' => '', 'minutos' => '');
-					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
-					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
-
-					$objActividad->Buscar($idActividad);
-					$this->setObjActividad($objActividad);
+					parent::Buscar($idActiv);
 					$resp= true;
 				}
                 
@@ -97,19 +73,10 @@ class Cine{
 			if($base->Ejecutar($consultaCine)){				
 				$arregloCine= array();
 				while($row2=$base->Registro()){
-                    $idCine = ($row2['idCine']);
                     $idActividad = ($row2['idActividad']);
-                    $genero = ($row2['genero']);
-                    $paisOrigen = ($row2['paisOrigen']);
-
-					$hora = array('hora' => '', 'minutos' => '');
-					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
-					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
-
-					$objActividad->Buscar($idActividad);
 				
-					$objCine = new Cine($objActividad, $genero, $paisOrigen);
-					$objCine->setIdCine($idCine);
+					$objCine = new Cine('', '', '', '','', '', '', '',);
+					$objCine->Buscar($idActividad);
 					array_push($arregloCine,$objCine);
 				}
 		 	}else{
@@ -124,50 +91,57 @@ class Cine{
 	public function insertar(){
 		$base=new BaseDatos();
 		$resp=false;
-		$objActividad = $this->getObjActividad();
-		$consultaInsertar="INSERT INTO cine(idActividad, genero, paisOrigen) VALUES (".$objActividad->getIdActividad().",'".$this->getGenero()."','".$this->getPaisOrigen()."')";
-		
-        if($base->Iniciar()){
-            $id = $base->devuelveIDInsercion($consultaInsertar);
-			if($id<>null){
-                $this->setIdCine($id);
-			    $resp=true;
-			}else{
-				$this->setmensajeoperacion($base->getError());	
-			}
-		}else{
-			$this->setmensajeoperacion($base->getError());
-		}
-		return $resp;
-	}
-	
-	public function modificar($idCine){
-	    $resp =false; 
-	    $base=new BaseDatos();
-		$objActividad = $this->getObjActividad();
-		$consultaModifica= "UPDATE cine SET idActividad=".$objActividad->getIdActividad().",genero='".$this->getGenero()."',paisOrigen='".$this->getPaisOrigen()."' WHERE idCine=".$idCine;
-		if($base->Iniciar()){
-			if($base->Ejecutar($consultaModifica)){
-			    $resp=  true;
+		// llamar al insertar del padre
+		if(parent::insertar()){
+			$idActividad = parent::getIdActividad();
+			$consultaInsertar="INSERT INTO cine(idActividad, genero, paisOrigen) VALUES (".$idActividad.",'".$this->getGenero()."','".$this->getPaisOrigen()."')";
+			if($base->Iniciar()){
+				if($base->Ejecutar($consultaInsertar)){
+					$resp=true;
+				}else{
+					$this->setmensajeoperacion($base->getError());	
+				}
 			}else{
 				$this->setmensajeoperacion($base->getError());
 			}
-		}else{
-			$this->setmensajeoperacion($base->getError());
 		}
 		return $resp;
 	}
 	
-	public function eliminar($idCine){
-		$base=new BaseDatos();
-		$resp=false;
-		if($base->Iniciar()){
-				$consultaBorra="DELETE FROM cine WHERE idCine=".$idCine;
-				if($base->Ejecutar($consultaBorra)){
-				    $resp=  true;
+	public function modificar(){
+	    $resp =false; 
+	    $base=new BaseDatos();
+		// modelar herencia
+		if(parent::modificar()){
+			$idActividad = parent::getIdActividad();
+			$consultaModifica= "UPDATE cine SET genero='".$this->getGenero()."',paisOrigen='".$this->getPaisOrigen()."' WHERE idActividad=".$idActividad;
+			if($base->Iniciar()){
+				if($base->Ejecutar($consultaModifica)){
+					$resp=  true;
 				}else{
 					$this->setmensajeoperacion($base->getError());
 				}
+			}else{
+				$this->setmensajeoperacion($base->getError());
+			}
+		}
+		return $resp;
+	}
+	
+	public function eliminar(){
+		$base=new BaseDatos();
+		$resp=false;
+		// modelar herencia
+		if($base->Iniciar()){
+			$idActividad = parent::getIdActividad();
+			$consultaBorra="DELETE FROM cine WHERE idActividad=".$idActividad;
+			if($base->Ejecutar($consultaBorra)){
+				if(parent::eliminar()){
+					$resp=  true;
+				}
+			}else{
+				$this->setmensajeoperacion($base->getError());
+			}
 		}else{
 			$this->setmensajeoperacion($base->getError());
 		}
@@ -176,8 +150,7 @@ class Cine{
 
     public function __toString()
     {
-        return  $this->getObjActividad() . "\n" . 
-				"ID Cine: " . $this->getIdCine() . "\n" . 
+        return  parent::__toString() . "\n" .
                 "Genero: " . $this->getGenero() . "\n" . 
                 "Pais de Origen: " . $this->getPaisOrigen() . "\n"
                 ;

@@ -1,31 +1,12 @@
 <?php
-
-class ObraTeatro{
-    private $idObraTeatro;
-    private $objActividad;
+include_once 'Actividad.php';
+class ObraTeatro extends Actividad{
 	private $mensajeoperacion;
 
-    public function __construct($objActividad){
-        
-        $this->objActividad = $objActividad;
+    public function __construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio){
+		parent::__construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio);
     }
 
-    public function getIdObraTeatro()
-    {
-        return $this->idObraTeatro;
-    }
-    public function setIdObraTeatro($idObraTeatro)
-    {
-        $this->idObraTeatro = $idObraTeatro;
-    }
-    public function getObjActividad()
-    {
-        return $this->objActividad;
-    }
-    public function setObjActividad($objActividad)
-    {
-        $this->objActividad = $objActividad;
-    }
     public function getmensajeoperacion(){
 		return $this->mensajeoperacion ;
 	}
@@ -39,23 +20,17 @@ class ObraTeatro{
 	 * @param int $idObraTeatro
 	 * @return true en caso de encontrar los datos, false en caso contrario 
 	 */		
-    public function Buscar($idObraTeatro){
+    public function Buscar($idActividad){
 		$base=new BaseDatos();
-		$consultaActividad="Select * from obrateatro where idObraTeatro=".$idObraTeatro;
+		$consultaActividad="Select * from obrateatro where idActividad=".$idActividad;
 		$resp= false;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
-				    $this->setIdObraTeatro($row['idObraTeatro']);
-				    $idActividad = ($row['idActividad']);
+				    $idActiv = ($row['idActividad']);
 
-					$hora = array('hora' => '', 'minutos' => '');
-					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
-					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
-
-					$objActividad->Buscar($idActividad);
-					$this->setObjActividad($objActividad);
-					$resp=true;
+					parent::Buscar($idActiv);
+					$resp= true;
 				}
 		 	}else{
 		 		$this->setmensajeoperacion($base->getError());
@@ -78,17 +53,10 @@ class ObraTeatro{
 			if($base->Ejecutar($consultaMusical)){				
 				$arregloObraMusical= array();
 				while($row2=$base->Registro()){
-                    $idObraTeatro = ($row2['idObraTeatro']);
                     $idActividad = ($row2['idActividad']);
 
-					$hora = array('hora' => '', 'minutos' => '');
-					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
-					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
-
-					$objActividad->Buscar($idActividad);
-				
-					$objObraMusical = new ObraTeatro($objActividad);
-					$objObraMusical->setIdObraTeatro($idObraTeatro);
+					$objObraMusical = new ObraTeatro("", "", "", "", "", "", "", "");
+					$objObraMusical->Buscar($idActividad);
 					array_push($arregloObraMusical,$objObraMusical);
 				}
 		 	}else{
@@ -103,50 +71,55 @@ class ObraTeatro{
 	public function insertar(){
 		$base=new BaseDatos();
 		$resp=false;
-		$objActividad = $this->getObjActividad();
-		$consultaInsertar="INSERT INTO obrateatro(idActividad) VALUES (".$objActividad->getIdActividad().")";
-		
-        if($base->Iniciar()){
-            $id = $base->devuelveIDInsercion($consultaInsertar);
-			if($id<>null){
-                $this->setIdObraTeatro($id);
-			    $resp=true;
-			}else{
-				$this->setmensajeoperacion($base->getError());	
-			}
-		}else{
-			$this->setmensajeoperacion($base->getError());
-		}
-		return $resp;
-	}
-	
-	public function modificar($idObraTeatro){
-	    $resp =false; 
-	    $base=new BaseDatos();
-		$objActividad = $this->getObjActividad();
-		$consultaModifica= "UPDATE obrateatro SET idActividad=".$objActividad->getIdActividad()." WHERE idObraTeatro=".$idObraTeatro;
-		if($base->Iniciar()){
-			if($base->Ejecutar($consultaModifica)){
-			    $resp=  true;
+		if(parent::insertar()){
+			$idActividad = parent::getIdActividad();
+			$consultaInsertar="INSERT INTO obrateatro(idActividad) VALUES (".$idActividad.")";
+			if($base->Iniciar()){
+				if($base->Ejecutar($consultaInsertar)){
+					$resp=true;
+				}else{
+					$this->setmensajeoperacion($base->getError());	
+				}
 			}else{
 				$this->setmensajeoperacion($base->getError());
 			}
-		}else{
-			$this->setmensajeoperacion($base->getError());
+		}
+		
+		return $resp;
+	}
+	
+	public function modificar(){
+	    $resp =false; 
+	    $base=new BaseDatos();
+		if(parent::modificar()){
+			$idActividad = parent::getIdActividad();
+			$consultaModifica= "UPDATE obrateatro SET idActividad=".$idActividad." WHERE idActividad=".$idActividad;
+			if($base->Iniciar()){
+				if($base->Ejecutar($consultaModifica)){
+					$resp=  true;
+				}else{
+					$this->setmensajeoperacion($base->getError());
+				}
+			}else{
+				$this->setmensajeoperacion($base->getError());
+			}
 		}
 		return $resp;
 	}
 	
-	public function eliminar($idObraTeatro){
+	public function eliminar(){
 		$base=new BaseDatos();
 		$resp=false;
 		if($base->Iniciar()){
-				$consultaBorra="DELETE FROM obramusical WHERE idObraTeatro=".$idObraTeatro;
-				if($base->Ejecutar($consultaBorra)){
-				    $resp=  true;
-				}else{
-					$this->setmensajeoperacion($base->getError());
+			$idActividad = parent::getIdActividad();
+			$consultaBorra="DELETE FROM obramusical WHERE idActividad=".$idActividad;
+			if($base->Ejecutar($consultaBorra)){
+				if(parent::eliminar()){
+					$resp=  true;
 				}
+			}else{
+				$this->setmensajeoperacion($base->getError());
+			}
 		}else{
 			$this->setmensajeoperacion($base->getError());
 		}
@@ -155,9 +128,7 @@ class ObraTeatro{
 
     public function __toString()
     {
-        return  $this->getObjActividad() . "\n" .
-				"ID Obra Teatro: " . $this->getIdObraTeatro() . "\n"
-				;
+        return  parent::__toString() . "\n";
     }
 
     

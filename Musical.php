@@ -1,34 +1,17 @@
 <?php
+include_once "Actividad.php";
 
-class Musical{
-    private $idMusical;
-    private $objActividad;
+class Musical extends Actividad{
     private $director;
     private $cantidadPersonasEscena;
 	private $mensajeoperacion;
 
-    public function __construct($objActividad, $director, $cantidadPersonasEscena){
-        $this->objActividad = $objActividad;
+    public function __construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio, $director, $cantidadPersonasEscena){
+        parent::__construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio);
         $this->director = $director;
         $this->cantidadPersonasEscena = $cantidadPersonasEscena;
     }
- 
-    public function getIdMusical()
-    {
-        return $this->idMusical;
-    }
-    public function setIdMusical($idMusical)
-    {
-        $this->idMusical = $idMusical;
-    }
-    public function getObjActividad()
-    {
-        return $this->objActividad;
-    }
-    public function setObjActividad($objActividad)
-    {
-        $this->objActividad = $objActividad;
-    }
+
     public function getDirector()
     {
         return $this->director;
@@ -58,24 +41,18 @@ class Musical{
 	 * @param int $idMusical
 	 * @return true en caso de encontrar los datos, false en caso contrario 
 	 */		
-    public function Buscar($idMusical){
+    public function Buscar($idActividad){
 		$base=new BaseDatos();
-		$consultaActividad="Select * from musical where idMusical=".$idMusical;
+		$consultaActividad="Select * from musical where idActividad=".$idActividad;
 		$resp= false;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
-				    $this->setIdMusical($row['idMusical']);
-				    $idActividad = ($row['idActividad']);
+				    $idActiv = ($row['idActividad']);
                     $this->setDirector($row['director']);
                     $this->setCantidadPersonasEscena($row['cantidadPersonasEscena']);
-					
-					$hora = array('hora' => '', 'minutos' => '');
-					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
-					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
 
-					$objActividad->Buscar($idActividad);
-					$this->setObjActividad($objActividad);
+					parent::Buscar($idActiv);
 					$resp= true;
 				}
 		 	}else{
@@ -90,29 +67,20 @@ class Musical{
 	public function listar($condicion){
 	    $arregloMusical = null;
 		$base=new BaseDatos();
-		$consultaMusical="Select * from musical ";
+		$consultaMusical="SELECT * FROM actividad INNER JOIN musical ON actividad.idActividad=musical.idActividad ";
 		if ($condicion!=""){
 		    $consultaMusical=$consultaMusical.' where '.$condicion;
 		}
-		$consultaMusical.=" order by director";
+		$consultaMusical.=" order by actividad.fecha";
 		//echo $consultaMusical;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaMusical)){				
 				$arregloMusical= array();
 				while($row2=$base->Registro()){
-                    $idMusical = ($row2['idMusical']);
                     $idActividad = ($row2['idActividad']);
-                    $director = ($row2['director']);
-                    $cantidadPersonasEscena = ($row2['cantidadPersonasEscena']);
-					
-					$hora = array('hora' => '', 'minutos' => '');
-					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
-					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
 
-					$objActividad->Buscar($idActividad);
-
-					$objMusical = new Musical($objActividad, $director, $cantidadPersonasEscena);
-					$objMusical->setIdMusical($idMusical);
+					$objMusical = new Musical("", "", "", "", "", "", "", "");
+					$objMusical->Buscar($idActividad);
 					array_push($arregloMusical,$objMusical);
 				}
 		 	}else{
@@ -127,50 +95,55 @@ class Musical{
 	public function insertar(){
 		$base=new BaseDatos();
 		$resp=false;
-		$objActividad = $this->getObjActividad();
-		$consultaInsertar="INSERT INTO musical(idActividad, director, cantidadPersonasEscena) VALUES (".$objActividad->getIdActividad().",'".$this->getDirector()."',".$this->getCantidadPersonasEscena().")";
-		
-        if($base->Iniciar()){
-            $id = $base->devuelveIDInsercion($consultaInsertar);
-			if($id<>null){
-                $this->setIdMusical($id);
-			    $resp=true;
-			}else{
-				$this->setmensajeoperacion($base->getError());	
-			}
-		}else{
-			$this->setmensajeoperacion($base->getError());
-		}
-		return $resp;
-	}
-	
-	public function modificar($idMusical){
-	    $resp =false; 
-	    $base=new BaseDatos();
-		$objActividad = $this->getObjActividad();
-		$consultaModifica= "UPDATE musical SET idActividad=".$objActividad->getIdActividad().",director='".$this->getDirector()."',cantidadPersonasEscena=".$this->getCantidadPersonasEscena()." WHERE idMusical=".$idMusical;
-		if($base->Iniciar()){
-			if($base->Ejecutar($consultaModifica)){
-			    $resp=  true;
+		if(parent::insertar()){
+			$idActividad = parent::getIdActividad();
+			$consultaInsertar="INSERT INTO musical(idActividad, director, cantidadPersonasEscena) VALUES (".$idActividad.",'".$this->getDirector()."',".$this->getCantidadPersonasEscena().")";
+			if($base->Iniciar()){
+				if($base->Ejecutar($consultaInsertar)){
+					$resp=true;
+				}else{
+					$this->setmensajeoperacion($base->getError());	
+				}
 			}else{
 				$this->setmensajeoperacion($base->getError());
 			}
-		}else{
-			$this->setmensajeoperacion($base->getError());
+		}
+		
+		return $resp;
+	}
+	
+	public function modificar(){
+	    $resp =false; 
+	    $base=new BaseDatos();
+		if(parent::modificar()){
+			$idActividad = parent::getIdActividad();
+			$consultaModifica= "UPDATE musical SET director='".$this->getDirector()."',cantidadPersonasEscena=".$this->getCantidadPersonasEscena()." WHERE idActividad=".$idActividad;
+			if($base->Iniciar()){
+				if($base->Ejecutar($consultaModifica)){
+					$resp=  true;
+				}else{
+					$this->setmensajeoperacion($base->getError());
+				}
+			}else{
+				$this->setmensajeoperacion($base->getError());
+			}
 		}
 		return $resp;
 	}
 	
-	public function eliminar($idMusical){
+	public function eliminar(){
 		$base=new BaseDatos();
 		$resp=false;
 		if($base->Iniciar()){
-				$consultaBorra="DELETE FROM musical WHERE idMusical=".$idMusical;
-				if($base->Ejecutar($consultaBorra)){
-				    $resp=  true;
-				}else{
-					$this->setmensajeoperacion($base->getError());
+			$idActividad = parent::getIdActividad();
+			$consultaBorra="DELETE FROM musical WHERE idActividad=".$idActividad;
+			if($base->Ejecutar($consultaBorra)){
+				if(parent::eliminar()){
+					$resp=  true;
 				}
+			}else{
+				$this->setmensajeoperacion($base->getError());
+			}
 		}else{
 			$this->setmensajeoperacion($base->getError());
 		}
@@ -179,8 +152,7 @@ class Musical{
 
     public function __toString()
     {
-        return  $this->getObjActividad() . "\n" . 
-				"ID Musical: " . $this->getIdMusical() . "\n" . 
+        return  parent::__toString() . "\n" .
                 "Director del Musical: " . $this->getDirector() . "\n" . 
                 "Cantidad de personas en Escena: " . $this->getCantidadPersonasEscena() . "\n"
                 ;
