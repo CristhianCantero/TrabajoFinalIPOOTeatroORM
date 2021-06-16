@@ -12,8 +12,3 @@ if($seInicio){
     echo $errorCarga;
 }
 
-$arrayTablas = array("cine", "musical", "obrateatro");
-
-foreach ($arrayTablas as $tabla) {
-    echo $tabla;
-}

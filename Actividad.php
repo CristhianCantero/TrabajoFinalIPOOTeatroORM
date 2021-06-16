@@ -1,7 +1,8 @@
 <?php
 include_once 'BaseDeDatos.php';
+
 class Actividad{
-    private $idTeatro;
+    private $teatro;
     private $idActividad;
     private $nombre;
     private $horaInicio = array();
@@ -10,9 +11,9 @@ class Actividad{
     private $precio;
     private $mensajeoperacion;
 
-    public function __construct($idTeatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio)
+    public function __construct($teatro, $nombre, $horaInicio, $fecha, $duracionActividad, $precio)
     {
-        $this->idTeatro = $idTeatro;
+        $this->teatro = $teatro;
         $this->nombre = $nombre;
         $this->horaInicio = array(
             "hora"=> $horaInicio['hora'],
@@ -75,13 +76,13 @@ class Actividad{
 		$this->mensajeoperacion=$mensajeoperacion;
 	}
 
-    public function getIdTeatro()
+    public function getTeatro()
     {
-        return $this->idTeatro;
+        return $this->teatro;
     }
-    public function setIdTeatro($idTeatro)
+    public function setTeatro($teatro)
     {
-        $this->idTeatro = $idTeatro;
+        $this->teatro = $teatro;
     }
 
     public function darCostos(){
@@ -91,7 +92,7 @@ class Actividad{
     }
 
     public function actualizarAtributos($arrayAtributos){
-        $this->setIdTeatro($arrayAtributos['idTeatro']);
+        $this->setTeatro($arrayAtributos['teatro']);
         $this->setNombre($arrayAtributos['nombre']);
         $this->setHoraInicio($arrayAtributos['horaInicio']);
         $this->setFecha($arrayAtributos['fecha']);
@@ -142,7 +143,7 @@ class Actividad{
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
-                    $this->setIdTeatro($row['idTeatro']);
+                    $idTeatro = ($row['idTeatro']);
 				    $this->setIdActividad($row['idActividad']);
 				    $this->setNombre($row['nombre']);
                     $this->setDuracionActividad($row['duracionActividad']);
@@ -153,6 +154,11 @@ class Actividad{
                     $fechaArray = $this->transformarFechaArray($fechaBD);
                     $this->setHoraInicio($horaInicioArray);
                     $this->setFecha($fechaArray);
+
+                    $teatro = new EdificioTeatro("", "", "");
+                    $teatro->Buscar($idTeatro);
+
+                    $this->setTeatro($teatro);
 					$resp= true;
 				}
 		 	}else{
@@ -184,8 +190,12 @@ class Actividad{
                     $precio = ($row2['precio']);
                     $horaInicioArray = $this->transformarHoraInicioArray($row2['horaInicio']);
                     $fechaArray = $this->transformarFechaArray($row2['fecha']);
-				
-					$objActividad = new Actividad($idTeatro, $nombre, $horaInicioArray, $fechaArray, $duracionActiv, $precio);
+
+                    $teatro = new EdificioTeatro("", "", "");
+
+                    $teatro->Buscar($idTeatro);
+                    
+					$objActividad = new Actividad($teatro, $nombre, $horaInicioArray, $fechaArray, $duracionActiv, $precio);
 					$objActividad->setIdActividad($actividad);
 					array_push($arregloActividad,$objActividad);
 				}
@@ -203,7 +213,8 @@ class Actividad{
 		$resp=false;
         $horaString = $this->transformarHoraString();
         $fechaString = $this->transformarFechaString();
-		$consultaInsertar="INSERT INTO actividad(idTeatro, nombre, horaInicio, fecha, duracionActividad, precio) VALUES (".$this->getIdTeatro().",'".$this->getNombre()."','".$horaString."','".$fechaString."',".$this->getDuracionActividad().",".$this->getPrecio().")";
+        $objTeatro = $this->getTeatro();
+		$consultaInsertar="INSERT INTO actividad(idTeatro, nombre, horaInicio, fecha, duracionActividad, precio) VALUES (".$objTeatro->getIdEdificioTeatro().",'".$this->getNombre()."','".$horaString."','".$fechaString."',".$this->getDuracionActividad().",".$this->getPrecio().")";
 		
         if($base->Iniciar()){
             $id = $base->devuelveIDInsercion($consultaInsertar);
@@ -224,7 +235,8 @@ class Actividad{
 	    $base=new BaseDatos();
         $horaString = $this->transformarHoraString();
         $fechaString = $this->transformarFechaString();
-		$consultaModifica="UPDATE actividad SET idTeatro=".$this->getIdTeatro().",nombre='".$this->getNombre()."',horaInicio='".$horaString."',fecha='".$fechaString."',duracionActividad=". $this->getDuracionActividad().",precio=". $this->getPrecio()." WHERE idActividad=".$idActiv;
+        $objTeatro = $this->getTeatro();
+		$consultaModifica="UPDATE actividad SET idTeatro=".$objTeatro->getIdEdificioTeatro().",nombre='".$this->getNombre()."',horaInicio='".$horaString."',fecha='".$fechaString."',duracionActividad=". $this->getDuracionActividad().",precio=". $this->getPrecio()." WHERE idActividad=".$idActiv;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaModifica)){
 			    $resp=  true;
@@ -257,7 +269,7 @@ class Actividad{
     {  
         $horario = $this->getHoraInicio();
         $fecha = $this->getFecha();
-        return  "ID Teatro: " . $this->getIdTeatro() . "\n" .
+        return  $this->getTeatro() . "\n" .
                 "ID Actividad: " . $this->getIdActividad() . "\n" . 
                 "Nombre: " . $this->getNombre() . "\n" .
                 "Precio: " . $this->getPrecio() . "\n" .

@@ -68,7 +68,7 @@ function datosModificarTeatro($objTeatro)
     return $arrayInfoTeatro;
 }
 
-function crearActividad($objActividadBase, $idTeatro)
+function crearActividad($objActividadBase, $objTeatro)
 {
     $coleccionActividadades = $objActividadBase->listar("");
 
@@ -110,6 +110,8 @@ function crearActividad($objActividadBase, $idTeatro)
                 $horaInicioArray = $actividad->getHoraInicio();
                 $duracionActualActividad = $actividad->getDuracionActividad(); //me ayudo a identificar mi error augusto, sumele un punto porque lo va a necesitar xd
                 $fechaActualActividad = $actividad->getFecha();
+                $teatroActual = $actividad->getTeatro();
+                $idTeatroActual = $teatroActual->getIdEdificioTeatro();
                 // Desgloso la hora y fecha de la actividad para utilizarlas en la corroboracion de existencia mas abajo
                 $horaInicio = $horaInicioArray['hora'];
                 $minutoInicio = $horaInicioArray['minutos'];
@@ -118,12 +120,15 @@ function crearActividad($objActividadBase, $idTeatro)
                 // Inicializo el horario de inicio y finalizacion de la actividad actual
                 $horaInicioActividad = ($horaInicio * 60) + $minutoInicio;
                 $horaFinalizacion = $horaInicioActividad + $duracionActualActividad;
-                // Reviso si la actividad que se desea cargar es el mismo dia de la actividad actual
-                if (($diaActual == $dia) && ($mesActual == $mes)) { //En caso de no ser el mismo pasa de largo y va a la siguiente actividad
-
-                    // Reviso si el horario que se desea cargar se encuentra entre el mismo horario de la actividad actual
-                    if (($horarioFuncionEnMinutos >= $horaInicioActividad) && ($horarioFuncionEnMinutos <= $horaFinalizacion)) {
-                        $existeHorarioActividad = true;
+                $idTeatro = $objTeatro->getIdEdificioTeatro();
+                // Si el id del teatro actual es igual al id del teatro en el que se desea cargar la funcion entro
+                if($idTeatroActual == $idTeatro){
+                    // Reviso si la actividad que se desea cargar es el mismo dia de la actividad actual
+                    if (($diaActual == $dia) && ($mesActual == $mes)) { //En caso de no ser el mismo pasa de largo y va a la siguiente actividad
+                        // Reviso si el horario que se desea cargar se encuentra entre el mismo horario de la actividad actual
+                        if (($horarioFuncionEnMinutos >= $horaInicioActividad) && ($horarioFuncionEnMinutos <= $horaFinalizacion)) {
+                            $existeHorarioActividad = true;
+                        }
                     }
                 }
             }
@@ -138,7 +143,7 @@ function crearActividad($objActividadBase, $idTeatro)
     $hora = array('hora' => $horaActividad, 'minutos' => $minutosActividad);
 
     // CREO EL OBJETO ACTIVIDAD Y LO INSERTO EN LA BASE DE DATOS
-    $objActividad = new Actividad($idTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad);
+    $objActividad = new Actividad($objTeatro, $nombreActividad, $hora, $fecha, $duracionActividad, $precioActividad);
 
     echo "INSERTANDO ACTIVIDAD EN LA BASE DE DATOS..." . "\n";
     $respuestaInsercion = $objActividad->insertar();
@@ -171,7 +176,7 @@ function crearActividad($objActividadBase, $idTeatro)
 
     switch ($tipoActividad) {
         case '1':
-            $objObraTeatro = new ObraTeatro($objActividad->getIdActividad());
+            $objObraTeatro = new ObraTeatro($objActividad);
             echo "INSERTANDO OBRA DE TEATRO EN LA BASE DE DATOS..." . "\n";
             $respuestaInsercion = $objObraTeatro->insertar();
             if ($respuestaInsercion) {
@@ -196,7 +201,7 @@ function crearActividad($objActividadBase, $idTeatro)
             echo "Ingrese el Pais de Origen: ";
             $paisDeOrigen = trim(fgets(STDIN));
 
-            $objCine = new Cine($objActividad->getIdActividad(), $generoCine, $paisDeOrigen);
+            $objCine = new Cine($objActividad, $generoCine, $paisDeOrigen);
 
             echo "INSERTANDO PELICULA EN LA BASE DE DATOS..." . "\n";
             $respuestaInsercion = $objCine->insertar();
@@ -221,7 +226,7 @@ function crearActividad($objActividadBase, $idTeatro)
             echo "Ingrese la Cantidad de Personas en Escena: ";
             $cantPersonasEnEscena = trim(fgets(STDIN));
 
-            $objMusical = new Musical($objActividad->getIdActividad(), $director, $cantPersonasEnEscena);
+            $objMusical = new Musical($objActividad, $director, $cantPersonasEnEscena);
 
             echo "INSERTANDO MUSICAL EN LA BASE DE DATOS..." . "\n";
             $respuestaInsercion = $objMusical->insertar();
@@ -265,7 +270,7 @@ function datosModificarActividad($objActividad)
     } else {
         $nuevoPrecioActividad = $objActividad->getPrecio();
     }
-    $arrayInfoActividad = array('idTeatro'=> $objActividad->getIdTeatro(), 'nombre' => $nuevoNombreActividad, 'horaInicio' => $objActividad->getHoraInicio(), 'fecha' => $objActividad->getFecha(), 'duracion' => $objActividad->getDuracionActividad(), 'precio' => $nuevoPrecioActividad);
+    $arrayInfoActividad = array('teatro'=> $objActividad->getIdEdificioTeatro(), 'nombre' => $nuevoNombreActividad, 'horaInicio' => $objActividad->getHoraInicio(), 'fecha' => $objActividad->getFecha(), 'duracion' => $objActividad->getDuracionActividad(), 'precio' => $nuevoPrecioActividad);
     return $arrayInfoActividad;
 }
 
@@ -281,7 +286,12 @@ $hora = array('hora' => '', 'minutos' => '');
 $fecha = array('anio' => '', 'mes' => '', 'dia' => '');
 $objActividadBase = new Actividad('', '', $hora, $fecha, '', ''); //idTeatro, nombre, hora, fecha, duracion, precio
 
+$objCineBase = new Cine("", "", "");
+$objMusicalBase = new Musical("", "", "");
+$objObraTeatroBase = new ObraTeatro("");
+
 do {
+    echo "---------------------MENU---------------------" . "\n";
     echo "ELIJA UNA OPCION: " . "\n";
     echo "1: CREAR UN TEATRO" . "\n";
     echo "2: MODIFICAR INFORMACION DE UN TEATRO" . "\n";
@@ -289,12 +299,16 @@ do {
     echo "4: ELIMINAR UN TEATRO" . "\n";
     echo "5: CREAR UNA FUNCION" . "\n";
     echo "6: MODIFICAR INFORMACION DE UNA FUNCION" . "\n";
-    echo "7: VER FUNCIONES" . "\n";
-    echo "8: ELIMINAR UNA FUNCION" . "\n";
-    echo "9: VER COSTOS DE UTILIZACION: " . "\n";
-    echo "10: SALIR" . "\n";
+    echo "7: VER FUNCIONES GENERALES" . "\n";
+    echo "8: VER PELICULAS" . "\n";
+    echo "9: VER MUSICALES" . "\n";
+    echo "10: VER OBRAS DE TEATRO" . "\n";
+    echo "11: ELIMINAR UNA FUNCION" . "\n";
+    echo "12: VER COSTOS DE UTILIZACION: " . "\n";
+    echo "13: SALIR" . "\n";
     echo "OPCION: ";
     $opcion = trim(fgets(STDIN));
+    echo "------------------------------------------" . "\n";
     switch ($opcion) {
         case '1':
             crearTeatro();
@@ -385,7 +399,16 @@ do {
             }
             echo "Ingrese el ID del teatro al que se desea agregar la funcion: ";
             $respuestaIDTeatro = trim(fgets(STDIN));
-            crearActividad($objActividadBase, $respuestaIDTeatro);
+            $objTeatroBusqueda = new EdificioTeatro('', '', '');
+            $respuestaBusqueda = $objTeatroBusqueda->Buscar($respuestaIDTeatro);
+            if ($respuestaBusqueda) {
+                echo "--------TEATRO ENCONTRADO--------" . "\n";
+                echo $objTeatroBusqueda;
+                echo "---------------------------------" . "\n";
+            } else {
+                echo "ERROR EN LA BUSQUEDA: " . $objTeatroBusqueda->getmensajeoperacion() . "\n";
+            }
+            crearActividad($objActividadBase, $objTeatroBusqueda);
         break;
         case '6':
             echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------" . "\n";
@@ -437,7 +460,31 @@ do {
             }
         break;
         case '8':
-            echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------";
+            $colPelicula = $objCineBase->listar("");
+            echo "-------------COLECCION PELICULAS ACTIVAS-------------" . "\n";
+            foreach ($colPelicula as $unaPelicula) {
+                echo $unaPelicula;
+                echo "-------------------------------------------------------" . "\n";
+            }
+        break;
+        case '9':
+            $colMusicales = $objMusicalBase->listar("");
+            echo "-------------COLECCION MUSICALES ACTIVAS-------------" . "\n";
+            foreach ($colMusicales as $unMusical) {
+                echo $unMusical;
+                echo "-------------------------------------------------------" . "\n";
+            }
+        break;
+        case '10':
+            $colObrasTeatro = $objObraTeatroBase->listar("");
+            echo "-------------COLECCION OBRAS DE TEATRO ACTIVAS-------------" . "\n";
+            foreach ($colObrasTeatro as $unaObraTeatro) {
+                echo $unaObraTeatro;
+                echo "-------------------------------------------------------" . "\n";
+            }
+        break;
+        case '11':
+            echo "-------------COLECCION ACTIVIDADES ACTIVAS-------------" . "\n";
             $colActividades = $objActividadBase->listar("");
             foreach ($colActividades as $unaActividad) {
                 echo $unaActividad;
@@ -458,7 +505,7 @@ do {
                 echo "ERROR EN LA ELIMINACION: " . $objActividadBase->getmensajeoperacion() . "\n";
             }
         break;
-        case '9':
+        case '12':
             echo "--------COLECCION TEATROS--------" . "\n";
             $coleccionTeatros = $objTeatroBase->listar("");
             foreach ($coleccionTeatros as $unTeatro) {
@@ -472,10 +519,10 @@ do {
             
             $costoFinal = $objTeatroBase->darCostos($mesDeseado, $respuestaIDTeatro);
 
-            echo "EL COSTO FINAL DE MANTENIMIENTO PARA EL TEATRO " . $respuestaIDTeatro . " ES: $" . $costoFinal . "\n";
+            echo "EL COSTO FINAL DE MANTENIMIENTO PARA EL TEATRO " . $respuestaIDTeatro . " EN EL MES " . $mesDeseado . " ES: $" . $costoFinal . "\n";
             break;
     }
-} while ($opcion <> 10);
+} while ($opcion <> 13);
 
 echo "PROGRAMA FINALIZADO" . "\n";
 echo "GRACIAS POR UTILIZARLO. VUELVA PRONTOSSSS";

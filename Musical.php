@@ -2,13 +2,13 @@
 
 class Musical{
     private $idMusical;
-    private $idActividad;
+    private $objActividad;
     private $director;
     private $cantidadPersonasEscena;
 	private $mensajeoperacion;
 
-    public function __construct($idActividad, $director, $cantidadPersonasEscena){
-        $this->idActividad = $idActividad;
+    public function __construct($objActividad, $director, $cantidadPersonasEscena){
+        $this->objActividad = $objActividad;
         $this->director = $director;
         $this->cantidadPersonasEscena = $cantidadPersonasEscena;
     }
@@ -21,13 +21,13 @@ class Musical{
     {
         $this->idMusical = $idMusical;
     }
-    public function getIdActividad()
+    public function getObjActividad()
     {
-        return $this->idActividad;
+        return $this->objActividad;
     }
-    public function setIdActividad($idActividad)
+    public function setObjActividad($objActividad)
     {
-        $this->idActividad = $idActividad;
+        $this->objActividad = $objActividad;
     }
     public function getDirector()
     {
@@ -66,9 +66,16 @@ class Musical{
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
 				    $this->setIdMusical($row['idMusical']);
-				    $this->setIdActividad($row['idActividad']);
+				    $idActividad = ($row['idActividad']);
                     $this->setDirector($row['director']);
                     $this->setCantidadPersonasEscena($row['cantidadPersonasEscena']);
+					
+					$hora = array('hora' => '', 'minutos' => '');
+					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
+
+					$objActividad->Buscar($idActividad);
+					$this->setObjActividad($objActividad);
 					$resp= true;
 				}
 		 	}else{
@@ -97,8 +104,14 @@ class Musical{
                     $idActividad = ($row2['idActividad']);
                     $director = ($row2['director']);
                     $cantidadPersonasEscena = ($row2['cantidadPersonasEscena']);
-				
-					$objMusical = new Musical($idActividad, $director, $cantidadPersonasEscena);
+					
+					$hora = array('hora' => '', 'minutos' => '');
+					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
+
+					$objActividad->Buscar($idActividad);
+
+					$objMusical = new Musical($objActividad, $director, $cantidadPersonasEscena);
 					$objMusical->setIdMusical($idMusical);
 					array_push($arregloMusical,$objMusical);
 				}
@@ -114,7 +127,8 @@ class Musical{
 	public function insertar(){
 		$base=new BaseDatos();
 		$resp=false;
-		$consultaInsertar="INSERT INTO musical(idActividad, director, cantidadPersonasEscena) VALUES (".$this->getIdActividad().",'".$this->getDirector()."',".$this->getCantidadPersonasEscena().")";
+		$objActividad = $this->getObjActividad();
+		$consultaInsertar="INSERT INTO musical(idActividad, director, cantidadPersonasEscena) VALUES (".$objActividad->getIdActividad().",'".$this->getDirector()."',".$this->getCantidadPersonasEscena().")";
 		
         if($base->Iniciar()){
             $id = $base->devuelveIDInsercion($consultaInsertar);
@@ -133,7 +147,8 @@ class Musical{
 	public function modificar($idMusical){
 	    $resp =false; 
 	    $base=new BaseDatos();
-		$consultaModifica= "UPDATE musical SET idActividad=".$this->getIdActividad().",director='".$this->getDirector()."',cantidadPersonasEscena=".$this->getCantidadPersonasEscena()." WHERE idMusical=".$idMusical;
+		$objActividad = $this->getObjActividad();
+		$consultaModifica= "UPDATE musical SET idActividad=".$objActividad->getIdActividad().",director='".$this->getDirector()."',cantidadPersonasEscena=".$this->getCantidadPersonasEscena()." WHERE idMusical=".$idMusical;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaModifica)){
 			    $resp=  true;
@@ -164,7 +179,7 @@ class Musical{
 
     public function __toString()
     {
-        return  "ID Actividad: " . $this->getIdActividad() . "\n" . 
+        return  $this->getObjActividad() . "\n" . 
 				"ID Musical: " . $this->getIdMusical() . "\n" . 
                 "Director del Musical: " . $this->getDirector() . "\n" . 
                 "Cantidad de personas en Escena: " . $this->getCantidadPersonasEscena() . "\n"

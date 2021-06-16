@@ -2,13 +2,13 @@
 
 class Cine{
     private $idCine;
-    private $idActividad;
+    private $objActividad;
     private $genero;
     private $paisOrigen;
 	private $mensajeoperacion;
 
-    public function __construct($idActividad, $genero, $paisOrigen){
-        $this->idActividad = $idActividad;
+    public function __construct($objActividad, $genero, $paisOrigen){
+        $this->objActividad = $objActividad;
         $this->genero = $genero;
         $this->paisOrigen = $paisOrigen;
     }
@@ -21,13 +21,13 @@ class Cine{
     {
         $this->idCine = $idCine;
     }
-    public function getIdActividad()
+    public function getObjActividad()
     {
-        return $this->idActividad;
+        return $this->objActividad;
     }
-    public function setIdActividad($idActividad)
+    public function setObjActividad($objActividad)
     {
-        $this->idActividad = $idActividad;
+        $this->objActividad = $objActividad;
     }
     public function getGenero()
     {
@@ -62,9 +62,16 @@ class Cine{
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
 				    $this->setIdCine($row['idCine']);
-				    $this->setIdActividad($row['idActividad']);
+				    $idActividad = ($row['idActividad']);
                     $this->setGenero($row['genero']);
                     $this->setPaisOrigen($row['paisOrigen']);
+
+					$hora = array('hora' => '', 'minutos' => '');
+					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
+
+					$objActividad->Buscar($idActividad);
+					$this->setObjActividad($objActividad);
 					$resp= true;
 				}
                 
@@ -80,11 +87,11 @@ class Cine{
 	public function listar($condicion){
 	    $arregloCine = null;
 		$base=new BaseDatos();
-		$consultaCine="Select * from cine ";
+		$consultaCine="SELECT * FROM actividad INNER JOIN cine ON actividad.idActividad=cine.idActividad ";
 		if ($condicion!=""){
 		    $consultaCine=$consultaCine.' where '.$condicion;
 		}
-		$consultaCine.=" order by genero";
+		$consultaCine.=" order by actividad.fecha";
 		//echo $consultaCine;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaCine)){				
@@ -94,8 +101,14 @@ class Cine{
                     $idActividad = ($row2['idActividad']);
                     $genero = ($row2['genero']);
                     $paisOrigen = ($row2['paisOrigen']);
+
+					$hora = array('hora' => '', 'minutos' => '');
+					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
+
+					$objActividad->Buscar($idActividad);
 				
-					$objCine = new Cine($idActividad, $genero, $paisOrigen);
+					$objCine = new Cine($objActividad, $genero, $paisOrigen);
 					$objCine->setIdCine($idCine);
 					array_push($arregloCine,$objCine);
 				}
@@ -111,7 +124,8 @@ class Cine{
 	public function insertar(){
 		$base=new BaseDatos();
 		$resp=false;
-		$consultaInsertar="INSERT INTO cine(idActividad, genero, paisOrigen) VALUES (".$this->getIdActividad().",'".$this->getGenero()."','".$this->getPaisOrigen()."')";
+		$objActividad = $this->getObjActividad();
+		$consultaInsertar="INSERT INTO cine(idActividad, genero, paisOrigen) VALUES (".$objActividad->getIdActividad().",'".$this->getGenero()."','".$this->getPaisOrigen()."')";
 		
         if($base->Iniciar()){
             $id = $base->devuelveIDInsercion($consultaInsertar);
@@ -130,7 +144,8 @@ class Cine{
 	public function modificar($idCine){
 	    $resp =false; 
 	    $base=new BaseDatos();
-		$consultaModifica= "UPDATE cine SET idActividad=".$this->getIdActividad().",genero='".$this->getGenero()."',paisOrigen='".$this->getPaisOrigen()."' WHERE idCine=".$idCine;
+		$objActividad = $this->getObjActividad();
+		$consultaModifica= "UPDATE cine SET idActividad=".$objActividad->getIdActividad().",genero='".$this->getGenero()."',paisOrigen='".$this->getPaisOrigen()."' WHERE idCine=".$idCine;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaModifica)){
 			    $resp=  true;
@@ -161,7 +176,7 @@ class Cine{
 
     public function __toString()
     {
-        return  "ID Actividad: " . $this->getIdActividad() . "\n" . 
+        return  $this->getObjActividad() . "\n" . 
 				"ID Cine: " . $this->getIdCine() . "\n" . 
                 "Genero: " . $this->getGenero() . "\n" . 
                 "Pais de Origen: " . $this->getPaisOrigen() . "\n"

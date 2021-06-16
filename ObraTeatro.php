@@ -2,12 +2,12 @@
 
 class ObraTeatro{
     private $idObraTeatro;
-    private $idActividad;
+    private $objActividad;
 	private $mensajeoperacion;
 
-    public function __construct($idActividad){
+    public function __construct($objActividad){
         
-        $this->idActividad = $idActividad;
+        $this->objActividad = $objActividad;
     }
 
     public function getIdObraTeatro()
@@ -18,13 +18,13 @@ class ObraTeatro{
     {
         $this->idObraTeatro = $idObraTeatro;
     }
-    public function getIdActividad()
+    public function getObjActividad()
     {
-        return $this->idActividad;
+        return $this->objActividad;
     }
-    public function setIdActividad($idActividad)
+    public function setObjActividad($objActividad)
     {
-        $this->idActividad = $idActividad;
+        $this->objActividad = $objActividad;
     }
     public function getmensajeoperacion(){
 		return $this->mensajeoperacion ;
@@ -47,7 +47,14 @@ class ObraTeatro{
 			if($base->Ejecutar($consultaActividad)){
 				if($row=$base->Registro()){
 				    $this->setIdObraTeatro($row['idObraTeatro']);
-				    $this->setIdActividad($row['idActividad']);
+				    $idActividad = ($row['idActividad']);
+
+					$hora = array('hora' => '', 'minutos' => '');
+					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
+
+					$objActividad->Buscar($idActividad);
+					$this->setObjActividad($objActividad);
 					$resp=true;
 				}
 		 	}else{
@@ -62,18 +69,25 @@ class ObraTeatro{
 	public function listar($condicion){
 	    $arregloObraMusical = null;
 		$base=new BaseDatos();
-		$consultaMusical="Select * from obrateatro ";
+		$consultaMusical="SELECT * FROM actividad INNER JOIN obrateatro ON actividad.idActividad=obrateatro.idActividad ";
 		if ($condicion!=""){
 		    $consultaMusical=$consultaMusical.' where '.$condicion;
 		}
+		$consultaMusical.=" order by actividad.fecha";
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaMusical)){				
 				$arregloObraMusical= array();
 				while($row2=$base->Registro()){
                     $idObraTeatro = ($row2['idObraTeatro']);
                     $idActividad = ($row2['idActividad']);
+
+					$hora = array('hora' => '', 'minutos' => '');
+					$fecha = array('anio' => '', 'mes' => '', 'dia' => '');
+					$objActividad = new Actividad('', '', $hora, $fecha, '', '');
+
+					$objActividad->Buscar($idActividad);
 				
-					$objObraMusical = new ObraTeatro($idActividad);
+					$objObraMusical = new ObraTeatro($objActividad);
 					$objObraMusical->setIdObraTeatro($idObraTeatro);
 					array_push($arregloObraMusical,$objObraMusical);
 				}
@@ -89,7 +103,8 @@ class ObraTeatro{
 	public function insertar(){
 		$base=new BaseDatos();
 		$resp=false;
-		$consultaInsertar="INSERT INTO obrateatro(idActividad) VALUES (".$this->getIdActividad().")";
+		$objActividad = $this->getObjActividad();
+		$consultaInsertar="INSERT INTO obrateatro(idActividad) VALUES (".$objActividad->getIdActividad().")";
 		
         if($base->Iniciar()){
             $id = $base->devuelveIDInsercion($consultaInsertar);
@@ -108,7 +123,8 @@ class ObraTeatro{
 	public function modificar($idObraTeatro){
 	    $resp =false; 
 	    $base=new BaseDatos();
-		$consultaModifica= "UPDATE obrateatro SET idActividad=".$this->getIdActividad()." WHERE idObraTeatro=".$idObraTeatro;
+		$objActividad = $this->getObjActividad();
+		$consultaModifica= "UPDATE obrateatro SET idActividad=".$objActividad->getIdActividad()." WHERE idObraTeatro=".$idObraTeatro;
 		if($base->Iniciar()){
 			if($base->Ejecutar($consultaModifica)){
 			    $resp=  true;
@@ -139,7 +155,7 @@ class ObraTeatro{
 
     public function __toString()
     {
-        return  "ID Actividad: " . $this->getIdActividad() . "\n" .
+        return  $this->getObjActividad() . "\n" .
 				"ID Obra Teatro: " . $this->getIdObraTeatro() . "\n"
 				;
     }
