@@ -36,12 +36,15 @@ class EdificioTeatro{
         $hora = array('hora' => "", 'minutos' => "");
         $fecha = array('anio' => "", 'mes' => "", 'dia' => "");
         $condicion = " actividad.idTeatro=". $this->getIdEdificioTeatro();
+
         $objCineBase = new Cine("", "", $hora, $fecha, "", "", "", "");
         $objMusicalBase = new Musical("", "", $hora, $fecha, "", "", "", "");
         $objObraTeatroBase = new ObraTeatro("", "", $hora, $fecha, "", "", "", "");
+
         $colPelicula = $objCineBase->listar($condicion);
         $colMusicales = $objMusicalBase->listar($condicion);
         $colObrasTeatro = $objObraTeatroBase->listar($condicion);
+        
         $colecFunciones = array_merge($colPelicula, $colMusicales, $colObrasTeatro);
         return $colecFunciones;
     }

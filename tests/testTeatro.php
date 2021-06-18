@@ -481,15 +481,16 @@ do {
                 echo "--------TEATRO ENCONTRADO--------" . "\n";
                 echo $objTeatroBusqueda;
                 echo "---------------------------------" . "\n";
+                $coleccionActividadades = $objTeatroBusqueda->getColeccionFunciones();
+                echo "------COLECCION ACTIVIDADES ACTIVAS PARA EL TEATRO " . strtoupper($objTeatroBusqueda->getNombre()) . "------" . "\n";
+                foreach ($coleccionActividadades as $unaActividad) {
+                    echo $unaActividad;
+                    echo "-------------------------------------------------------" . "\n";
+                }
             } else {
                 echo "ERROR EN LA BUSQUEDA: " . $objTeatroBusqueda->getmensajeoperacion() . "\n";
             }
-            $coleccionActividadades = $objTeatroBusqueda->getColeccionFunciones();
-            echo "------COLECCION ACTIVIDADES ACTIVAS PARA EL TEATRO " . strtoupper($objTeatroBusqueda->getNombre()) . "------" . "\n";
-            foreach ($coleccionActividadades as $unaActividad) {
-                echo $unaActividad;
-                echo "-------------------------------------------------------" . "\n";
-            }
+            
         break;
         case '8':
             $colPelicula = $objCineBase->listar("");
